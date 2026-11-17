@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Hassan is ERC20, Ownable {
 
-    constructor() ERC20 ("Hassan", "HSN") Ownable(msg.sender){
+    constructor(string memory name, string memory symbol) ERC20(name, symbol) Ownable(msg.sender) {
     }
 
     function mint (address to, uint256 amount) public onlyOwner {
