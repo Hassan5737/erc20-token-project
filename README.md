@@ -1,287 +1,351 @@
+# Hassan ERC-20 Token
 
-# ERC-20 Token
+A fungible ERC-20 token implemented in Solidity with OpenZeppelin Contracts and developed, tested, deployed, and verified using Foundry.
 
-A Solidity-based ERC-20 token implementation built with Foundry, following the Ethereum token standard and established smart contract development practices.
+The project demonstrates the core ERC-20 token lifecycle on Ethereum: token metadata, supply management, balances, direct transfers, approvals, delegated transfers, access-controlled minting, ownership management, automated testing, testnet deployment, source-code verification, and wallet integration.
 
-This project demonstrates the design, implementation, testing, and deployment of a fungible token on Ethereum. It covers the core ERC-20 functionality, including token supply management, balance tracking, transfers, approvals, and delegated transfers.
-
-The codebase emphasizes correctness, security, maintainability, and comprehensive automated testing, providing a practical implementation of one of the most fundamental standards in the Ethereum ecosystem.
+> **Network:** Ethereum Sepolia (Chain ID: `11155111`)  
+> **Token:** Hassan (`HSN`)  
+> **Contract:** [`0x95Bea4C3757c5143d12dAD30Eb93bEf58B9e88fB`](https://eth-sepolia.blockscout.com/address/0x95Bea4C3757c5143d12dAD30Eb93bEf58B9e88fB)
 
 ---
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Core Features](#core-features)
+- [Project Overview](#project-overview)
+- [Deployed Contract](#deployed-contract)
+- [Features](#features)
 - [ERC-20 Standard](#erc-20-standard)
-- [Token Architecture](#token-architecture)
+- [Contract Design](#contract-design)
+- [Token Lifecycle](#token-lifecycle)
+- [Access Control and Ownership](#access-control-and-ownership)
 - [Technology Stack](#technology-stack)
-- [Project Structure](#project-structure)
-- [Smart Contract Design](#smart-contract-design)
-- [Testing](#testing)
-- [Security Considerations](#security-considerations)
+- [Repository Structure](#repository-structure)
+- [Testing Strategy](#testing-strategy)
+- [Build and Test](#build-and-test)
 - [Deployment](#deployment)
-- [Installation and Usage](#installation-and-usage)
-- [Development Principles](#development-principles)
+- [Contract Verification](#contract-verification)
+- [MetaMask Integration](#metamask-integration)
+- [Security Considerations](#security-considerations)
+- [Configuration and Secrets](#configuration-and-secrets)
+- [Development Workflow](#development-workflow)
 - [References](#references)
 
 ---
 
-## Overview
+## Project Overview
 
-ERC-20 is the standard interface for fungible tokens on Ethereum. It enables different applications, wallets, exchanges, and smart contracts to interact with tokens through a consistent set of functions and events.
+ERC-20 is the widely adopted Ethereum token standard for fungible assets. It defines a common interface that allows wallets, decentralized applications, exchanges, and other smart contracts to interact with tokens in a consistent way.
 
-This project provides an ERC-20 token implementation using Solidity and Foundry. It focuses on the essential mechanisms behind token contracts and demonstrates how these mechanisms work together to maintain consistent token ownership and supply accounting.
+This project implements a token named **Hassan**, with the symbol **HSN**, using the audited and widely adopted ERC-20 implementation provided by OpenZeppelin Contracts. Rather than reimplementing the standard's accounting and transfer logic, the project inherits the established implementation and adds a project-specific minting capability protected by ownership-based access control.
 
-The implementation covers the complete token lifecycle, from initial supply creation to transfers and delegated spending through allowances.
+The token's name and symbol are fixed in the contract constructor. The contract deployer becomes the initial owner, and the initial total supply is zero. The owner can create tokens later through the restricted `mint` function.
 
-## Core Features
+The project also includes a Foundry test suite covering expected behavior, access restrictions, emitted events, invalid inputs, and important edge cases. The deployed Sepolia contract has been verified on Etherscan, Blockscout, and Sourcify, and the token has been added to MetaMask for wallet-side inspection.
 
-- **ERC-20 Compliance:** Implements the standard token interface defined by EIP-20.
-- **Token Metadata:** Provides token name, symbol, and decimal precision.
-- **Supply Management:** Defines and manages the token's initial supply and minting behavior.
-- **Balance Tracking:** Maintains the token balance of each account.
-- **Token Transfers:** Supports direct transfers between accounts.
-- **Approval Mechanism:** Allows token holders to authorize other accounts to spend tokens.
-- **Allowance Management:** Tracks and updates approved spending limits.
-- **Delegated Transfers:** Supports transfers performed on behalf of token holders through `transferFrom`.
-- **Event Emission:** Emits standard ERC-20 events for transfers and approvals.
-- **Automated Testing:** Uses Foundry to validate contract behavior, expected reverts, and edge cases.
-- **Testnet Deployment:** Includes deployment scripts and testnet deployment support.
+## Deployed Contract
+
+| Property | Value |
+|---|---|
+| Contract name | `Hassan` |
+| Token name | `Hassan` |
+| Token symbol | `HSN` |
+| Network | Ethereum Sepolia Testnet |
+| Chain ID | `11155111` |
+| Solidity pragma | `^0.8.31` |
+| Compiler used for deployment | `0.8.37+commit.f401782d` |
+| EVM version | `osaka` |
+| Optimization | Disabled |
+| License | MIT |
+| Token decimals | `18` |
+| Initial total supply | `0 HSN` |
+| Deployer / initial owner | `0x708f5b324aCcC61c9bfc30bF10653783e3680d4E` |
+| Contract address | `0x95Bea4C3757c5143d12dAD30Eb93bEf58B9e88fB` |
+| Deployment transaction | `0xd50487be6e7ea8b716d67f36c78c5668e2e5391f9b486932fa95fe303bc70a31` |
+
+### Contract Explorer Links
+
+- [View on Etherscan — Sepolia](https://sepolia.etherscan.io/address/0x95Bea4C3757c5143d12dAD30Eb93bEf58B9e88fB)
+- [View on Blockscout — Sepolia](https://eth-sepolia.blockscout.com/address/0x95Bea4C3757c5143d12dAD30Eb93bEf58B9e88fB)
+- [View verified source on Sourcify](https://repo.sourcify.dev/contracts/full_match/11155111/0x95Bea4C3757c5143d12dAD30Eb93bEf58B9e88fB/)
+- [View deployment transaction](https://sepolia.etherscan.io/tx/0xd50487be6e7ea8b716d67f36c78c5668e2e5391f9b486932fa95fe303bc70a31)
+
+## Features
+
+- **ERC-20 implementation:** Uses OpenZeppelin's standard ERC-20 implementation.
+- **Fixed token metadata:** Initializes the token name as `Hassan` and symbol as `HSN` directly in the constructor.
+- **Standard decimal precision:** Uses the OpenZeppelin ERC-20 default of 18 decimals.
+- **Owner-controlled minting:** Restricts token creation to the current owner through `onlyOwner`.
+- **Balance accounting:** Inherits standard balance tracking and supply accounting.
+- **Direct transfers:** Supports `transfer` between accounts.
+- **Approvals and allowances:** Supports `approve` and `allowance` for delegated token spending.
+- **Delegated transfers:** Supports `transferFrom` subject to the owner's balance and the available allowance.
+- **Ownership management:** Supports ownership transfer and renunciation through OpenZeppelin `Ownable`.
+- **Automated testing:** Uses Foundry to test successful operations, expected reverts, events, and edge cases.
+- **Foundry deployment:** Deploys the contract to Sepolia using a configured Foundry keystore account.
+- **Multi-explorer verification:** Verified source code is available through Etherscan, Blockscout, and Sourcify.
+- **Wallet integration:** Added the deployed HSN token to MetaMask on Sepolia.
 
 ## ERC-20 Standard
 
-The implementation follows [EIP-20](https://eips.ethereum.org/EIPS/eip-20), which defines the standard interface for fungible tokens.
+The contract builds on [EIP-20](https://eips.ethereum.org/EIPS/eip-20), which specifies the common interface for fungible tokens.
 
-### Required Functions
+### Standard Functions
 
-| Function | Description |
+| Function | Purpose |
 |---|---|
-| `totalSupply()` | Returns the total number of tokens in existence. |
-| `balanceOf(address)` | Returns the token balance of a specified account. |
-| `transfer(address, uint256)` | Transfers tokens from the caller to another account. |
-| `allowance(address, address)` | Returns the remaining amount approved for a spender. |
-| `approve(address, uint256)` | Sets the amount a spender is allowed to use. |
-| `transferFrom(address, address, uint256)` | Transfers tokens using an existing allowance. |
+| `totalSupply()` | Returns the total number of tokens currently in existence. |
+| `balanceOf(address account)` | Returns the token balance of an account. |
+| `transfer(address to, uint256 value)` | Transfers tokens from the caller to another address. |
+| `allowance(address owner, address spender)` | Returns the remaining amount an owner has authorized a spender to use. |
+| `approve(address spender, uint256 value)` | Sets or replaces the spender's allowance. |
+| `transferFrom(address from, address to, uint256 value)` | Transfers tokens using an allowance previously granted by the token owner. |
 
-### Required Events
+### Standard Events
 
-| Event | Description |
+| Event | Purpose |
 |---|---|
-| `Transfer` | Emitted when tokens are transferred between accounts. |
-| `Approval` | Emitted when an allowance is approved or updated. |
+| `Transfer` | Records token transfers. Minting is also represented by a `Transfer` event whose sender is the zero address. |
+| `Approval` | Records an allowance approval or update. |
 
-### Token Metadata
+### Metadata
 
-The token also exposes the commonly used ERC-20 metadata:
+The token exposes the ERC-20 metadata extension:
 
-- `name()`: The human-readable token name.
-- `symbol()`: The token ticker symbol.
-- `decimals()`: The number of decimal places used for displaying token amounts.
+- `name()` returns `Hassan`.
+- `symbol()` returns `HSN`.
+- `decimals()` returns `18`.
 
-The metadata functions are defined by the optional ERC-20 metadata extension.
+`decimals` affects how token amounts are displayed by wallets and interfaces. It does not change the integer arithmetic used by the contract. For example, `1 HSN` is represented on-chain as `1e18` base units.
 
-## Token Architecture
+## Contract Design
 
-The contract follows the ERC-20 token model, in which balances and allowances are maintained independently for each account.
+**Source file:** `src/Hassan.sol`
 
-### Supply and Balances
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.31;
 
-The token supply represents the total amount of tokens in existence. Each account has an associated balance, and token transfers update the sender's and recipient's balances while preserving the total supply.
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-### Transfers
+contract Hassan is ERC20, Ownable {
+    constructor() ERC20("Hassan", "HSN") Ownable(msg.sender) {}
 
-A token holder can transfer tokens directly to another address. A successful transfer decreases the sender's balance and increases the recipient's balance by the same amount.
+    function mint(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
+    }
+}
+```
 
-### Approvals and Allowances
+### Inheritance
 
-The approval mechanism allows an account to authorize another account to spend a specified amount of its tokens.
+The contract inherits from two OpenZeppelin contracts:
 
-The allowance mechanism tracks the remaining approved amount and enables delegated transfers through `transferFrom`.
+- `ERC20` provides the standard token implementation, including balances, transfers, approvals, allowances, metadata, and the standard events.
+- `Ownable` provides ownership management and the `onlyOwner` access-control modifier.
 
-### Delegated Transfers
+This keeps the project-specific contract small and makes its custom behavior easy to identify: the contract fixes its metadata at deployment and adds an owner-restricted minting function.
 
-An approved spender can transfer tokens from the token holder's account, provided that the requested amount does not exceed the available allowance or the owner's balance.
+### Constructor and Initialization
+
+```solidity
+constructor() ERC20("Hassan", "HSN") Ownable(msg.sender) {}
+```
+
+The constructor intentionally takes no arguments. The token name and symbol are constants for this project and are initialized directly through the parent `ERC20` constructor. `Ownable(msg.sender)` assigns ownership to the account deploying the contract.
+
+No tokens are minted during construction, so `totalSupply()` initially returns zero. The owner can create the initial supply later by calling `mint`.
+
+### Minting
+
+```solidity
+function mint(address to, uint256 amount) public onlyOwner {
+    _mint(to, amount);
+}
+```
+
+The `onlyOwner` modifier ensures that only the current owner can call this function. OpenZeppelin's `_mint` updates the recipient's balance and the total supply, and emits the standard `Transfer` event from the zero address. Invalid recipients are rejected by the inherited implementation.
+
+The contract does not impose a maximum supply or a minting schedule. The current owner therefore has the authority to mint any amount accepted by the ERC-20 implementation. This is an important trust assumption for anyone using the token.
+
+## Token Lifecycle
+
+### 1. Minting and Supply
+
+Minting creates new tokens and increases both the recipient's balance and the total supply. Since the constructor does not mint an initial allocation, the supply remains zero until the owner calls `mint`.
+
+### 2. Direct Transfers
+
+A holder can call `transfer` to move tokens from their own balance to a recipient. A successful transfer decreases the sender's balance and increases the recipient's balance by the same amount. The total supply does not change.
+
+### 3. Approvals and Allowances
+
+A token holder can call `approve` to authorize a spender to use up to a specified amount of their tokens. The approved amount is stored as an allowance for that owner-spender pair and can be queried through `allowance`.
+
+Calling `approve` again sets the allowance to the new value; it does not add the new value to the previous allowance. Applications should take care when changing non-zero allowances, because allowance changes can have transaction-ordering implications. Users should approve only spenders they trust and only amounts they intend to authorize.
+
+### 4. Delegated Transfers
+
+An approved spender can call `transferFrom` to transfer tokens from the owner's balance, subject to both the owner's available balance and the remaining allowance. For a finite allowance, a successful delegated transfer reduces the remaining allowance by the amount transferred.
+
+OpenZeppelin's ERC-20 implementation treats `type(uint256).max` as an infinite allowance: it is not decreased by `transferFrom`. This behavior is explicitly covered by the project's tests. Infinite approvals are convenient, but they grant broad spending authority and should be used carefully.
+
+## Access Control and Ownership
+
+The contract uses OpenZeppelin `Ownable` for privileged operations.
+
+- **Initial owner:** The deploying account becomes the owner through `Ownable(msg.sender)`.
+- **Restricted minting:** Only the current owner can call `mint`.
+- **Ownership transfer:** The owner can call `transferOwnership` to assign ownership to another valid address. After the transfer, the previous owner can no longer perform owner-only operations.
+- **Ownership renunciation:** The owner can call `renounceOwnership`, setting the owner to the zero address. Once ownership is renounced, there is no owner account able to call `mint`.
+
+Renouncing ownership is a consequential and effectively irreversible action for this contract: because minting is protected by `onlyOwner`, renunciation permanently removes the ability to mint through the current contract implementation. Ownership should only be transferred or renounced after carefully checking the destination and the intended administrative model.
 
 ## Technology Stack
 
-| Technology | Purpose |
+| Technology | Role |
 |---|---|
-| Solidity | Smart contract implementation. |
-| Foundry | Smart contract development and testing framework. |
-| Forge | Compilation, testing, and deployment scripting. |
-| Cast | Ethereum RPC interaction and contract operations. |
-| Anvil | Local Ethereum development network. |
-| OpenZeppelin Contracts | Standardized smart contract interfaces and reusable implementations. |
+| Solidity | Smart contract programming language. |
+| Foundry | Development, compilation, testing, deployment, and verification workflow. |
+| Forge | Build, test, deploy, and verification commands. |
+| OpenZeppelin Contracts | ERC-20 implementation and ownership access control. |
+| forge-std | Foundry testing utilities and assertions. |
 | Ethereum | Blockchain execution environment. |
-| Sepolia | Ethereum test network. |
-| Etherscan / Blockscout | Transaction and contract exploration. |
-| Git & GitHub | Version control and source code management. |
+| Sepolia | Ethereum testnet used for deployment and validation. |
+| Etherscan | Contract and transaction explorer; source verification. |
+| Blockscout | Contract explorer and source verification. |
+| Sourcify | Contract source verification and metadata repository. |
+| MetaMask | Wallet used to import and inspect the deployed HSN token. |
+| Git and GitHub | Version control and project hosting. |
 
+## Repository Structure
 
-## Project Structure
-
-The repository is organized into dedicated directories for smart contract development, automated testing, deployment, and day-by-day technical documentation.
+The repository separates the contract, automated tests, dependencies, and day-by-day learning documentation.
 
 ```text
 erc20-token-project/
 ├── days/
 │   ├── day-01/
 │   │   └── README.md
-│   └── day-02/
+│   ├── day-02/
+│   │   └── README.md
+│   ├── day-03/
+│   │   └── README.md
+│   ├── day-04/
+│   │   └── README.md
+│   └── day-05/
 │       └── README.md
 ├── lib/
 │   ├── forge-std/
 │   └── openzeppelin-contracts/
-├── script/
-│   └── DeployERC20.s.sol
 ├── src/
-│   └── ERC20Token.sol
+│   └── Hassan.sol
 ├── test/
-│   └── ERC20Token.t.sol
+│   └── Hassan.t.sol
 ├── .env.example
 ├── .gitignore
 ├── foundry.toml
+├── Makefile
 └── README.md
 ```
 
-### Daily Development Documentation
+The `days/` documentation records the concepts and implementation work covered during the project:
 
-The `days/` directory contains technical documentation organized by development day. Each day's README records the concepts studied, implementation details, engineering decisions, and relevant references.
-
-| Directory | Focus |
+| Documentation | Focus |
 |---|---|
-| `day-01/` | Token fundamentals, fungible tokens, Ethereum token standards, ERC-20 specification, IERC20 interface, and OpenZeppelin ERC-20 implementation. |
-| `day-02/` | ERC-20 smart contract implementation, token metadata, initial supply, minting, transfers, approvals, and allowance management. |
+| `day-01/` | Fungible tokens, Ethereum token standards, ERC-20, interfaces, and OpenZeppelin. |
+| `day-02/` | Implementing the Hassan token, metadata, minting, transfers, approvals, and allowances. |
+| `day-03/` | Testnet deployment, contract interaction, explorer verification workflow, and wallet inspection. |
+| `day-04/` | Foundry testing fundamentals and tests for initialization, minting, and transfers. |
+| `day-05/` | Approval and allowance behavior, delegated transfers, and ownership management tests. |
 
-### Main Project Directories
+## Testing Strategy
 
-- `src/`: Solidity smart contract source code.
-- `test/`: Foundry automated tests covering functionality, edge cases, and expected reverts.
-- `script/`: Deployment and contract interaction scripts.
-- `lib/`: External Solidity dependencies, including Foundry and OpenZeppelin libraries.
-- `days/`: Structured technical documentation for each development day.
+The project uses Foundry's `forge test` framework. The test contract deploys a fresh `Hassan` instance in `setUp()` for each test and prepares separate owner, Alice, and Bob accounts. This isolates test cases and makes caller identity explicit when testing permissions and delegated operations.
 
-## Smart Contract Design
+The test suite covers the following areas:
 
-The token implementation is organized around the responsibilities defined by the ERC-20 standard.
+### Constructor and Metadata
 
-### Token Initialization
+- Verifies the token name is `Hassan`.
+- Verifies the token symbol is `HSN`.
+- Verifies the deployer/test contract is the initial owner.
+- Verifies the initial total supply is zero.
+- Verifies the token uses 18 decimals.
 
-The contract initializes its metadata and establishes the initial token supply, assigning the initial allocation according to the constructor configuration.
+### Minting
 
-### Supply Management
+- Successful minting by the owner.
+- Minting to multiple recipient addresses.
+- Rejection of minting by a non-owner.
+- Rejection of minting to the zero address.
+- Correct updates to recipient balances and total supply.
 
-Token supply operations maintain accurate accounting of the total number of tokens in existence. Minting operations increase the supply and update the recipient's balance consistently.
+### Transfers
 
-### Balance Management
+- Successful transfer between accounts.
+- Rejection of transfers exceeding the sender's balance.
+- Rejection of transfers to the zero address.
+- Verification of the emitted `Transfer` event.
 
-Every account's token balance is maintained through the contract's state. Transfers and supply operations update balances while preserving the contract's accounting invariants.
+### Approvals and Allowances
 
-### Approval and Allowance Management
+- Successful approval and allowance assignment.
+- Replacing an existing allowance with a new amount.
+- Rejection of an approval using the zero address as spender.
+- Verification of the emitted `Approval` event.
 
-The contract provides an authorization mechanism for delegated token spending. Allowances are tracked per token owner and spender, and are updated as delegated transfers are executed.
+### Delegated Transfers
 
-### Events
+- Successful `transferFrom` by an approved spender.
+- Correct sender and recipient balances after the transfer.
+- Correct reduction of a finite allowance after spending.
+- Rejection when the requested amount exceeds the allowance.
+- Preservation of an infinite allowance set to `type(uint256).max`.
+- Rejection of delegated transfers to the zero address.
 
-The standard `Transfer` and `Approval` events provide an observable record of token transfers and approval changes, allowing external applications and blockchain explorers to track token activity.
+### Ownership Management
 
-## Testing
+- Successful transfer of ownership.
+- Rejection of ownership transfer by a non-owner.
+- Rejection of ownership transfer to the zero address.
+- Confirmation that the new owner can mint.
+- Confirmation that the previous owner can no longer mint.
+- Successful ownership renunciation.
+- Rejection of renunciation by a non-owner.
+- Confirmation that minting is no longer possible after renunciation.
 
-The project uses Foundry to provide automated testing for the token's functionality and expected behavior.
-
-The test suite covers:
-
-- Initial token supply and allocation.
-- Token metadata.
-- Account balance tracking.
-- Successful transfers.
-- Transfers with insufficient balances.
-- Minting behavior.
-- Approval operations.
-- Allowance updates.
-- Successful delegated transfers.
-- Delegated transfers exceeding the available allowance.
-- Delegated transfers with insufficient owner balances.
-- Event emission.
-- Invalid inputs and relevant edge cases.
-- Expected reverts and failure conditions.
-
-Tests are designed to validate both successful operations and situations in which the contract must reject an operation.
-
-Run the complete test suite:
+Run the tests with:
 
 ```bash
 forge test
 ```
 
-Run tests with detailed execution traces:
+For detailed traces:
 
 ```bash
 forge test -vvvv
 ```
 
-Generate a code coverage report:
+For a coverage report:
 
 ```bash
 forge coverage
 ```
 
-## Security Considerations
+The test suite is intended to validate both successful execution and the contract's behavior when an operation must be rejected. The exact test count should be taken from the output of the current checkout rather than hard-coded in this README.
 
-Smart contract security is a fundamental part of the implementation.
-
-The project considers the following areas:
-
-- **Access Control:** Restricting privileged operations to authorized accounts.
-- **Supply Integrity:** Maintaining consistency between total supply and account balances.
-- **Balance Validation:** Preventing transfers that exceed available balances.
-- **Allowance Validation:** Enforcing approved spending limits during delegated transfers.
-- **Input Validation:** Handling invalid addresses and unsupported operations.
-- **State Consistency:** Ensuring that state updates preserve token accounting invariants.
-- **Dependency Management:** Using established libraries and maintaining controlled dependency versions.
-- **Automated Testing:** Validating expected behavior, failure conditions, and edge cases.
-
-The use of established libraries and automated tests improves development reliability but does not replace a professional security audit.
-
-## Deployment
-
-The contract is deployable to Ethereum-compatible networks using Foundry deployment scripts.
-
-The deployment workflow includes:
-
-1. Configuring the target network and RPC endpoint.
-2. Setting up deployment credentials securely.
-3. Executing the deployment script.
-4. Recording the deployed contract address and transaction hash.
-5. Verifying the contract source code on a supported block explorer.
-6. Interacting with the deployed token through wallet and RPC tools.
-
-Sepolia is used as the primary Ethereum test network for deployment and validation.
-
-### Environment Configuration
-
-Network credentials and sensitive values are supplied through environment variables.
-
-Example configuration:
-
-```bash
-SEPOLIA_RPC_URL=
-PRIVATE_KEY=
-ETHERSCAN_API_KEY=
-```
-
-Private keys and API credentials must never be committed to version control.
-
-## Installation and Usage
+## Build and Test
 
 ### Prerequisites
 
 - Git
-- Foundry
-- Solidity compiler supported by the project configuration
+- Foundry (including `forge`)
 - An Ethereum wallet for testnet interaction
 - Sepolia test ETH for deployment
+- A Sepolia RPC endpoint
+- An Etherscan API key if using Etherscan verification
 
 ### Clone the Repository
 
@@ -292,11 +356,9 @@ cd erc20-token-project
 
 ### Install Dependencies
 
-```bash
-forge install
-```
+The repository includes its Foundry and OpenZeppelin dependencies under `lib/`. If dependencies need to be installed or restored, use the project's configured dependency setup and remappings.
 
-### Build Contracts
+### Compile
 
 ```bash
 forge build
@@ -314,36 +376,114 @@ forge test
 forge fmt
 ```
 
-### Start a Local Blockchain
+## Deployment
+
+The Hassan token was deployed to Ethereum Sepolia using Foundry's `forge create` command and a locally configured Foundry keystore account. The token metadata is embedded in the constructor, so no name or symbol arguments are required during deployment.
+
+The deployment command used was:
 
 ```bash
-anvil
+forge create Hassan \
+    --account hassanAccount \
+    --rpc-url "$SEPOLIA_RPC_URL" \
+    --broadcast
 ```
 
-### Deploy to Sepolia
+The command compiled the project successfully and broadcast the deployment transaction. The resulting contract address and transaction hash are recorded in the [Deployed Contract](#deployed-contract) section.
 
-After configuring the environment variables:
+### Deployment Notes
+
+- `hassanAccount` is the local Foundry keystore account name; it is not a private key.
+- The RPC endpoint is supplied at runtime and should not be hard-coded into public documentation.
+- Foundry prompts for the keystore password when required.
+- The deployer becomes the initial owner and therefore receives the authority to mint and manage ownership.
+- The deployment is on Sepolia, a test network, and is not an Ethereum mainnet deployment.
+
+## Contract Verification
+
+The deployed contract source was verified across three blockchain verification platforms.
+
+| Platform | Result | Link |
+|---|---|---|
+| Etherscan | Foundry verification command reported the contract was already verified. | [Etherscan](https://sepolia.etherscan.io/address/0x95Bea4C3757c5143d12dAD30Eb93bEf58B9e88fB#code) |
+| Blockscout | Contract page displays **Contract source code verified (exact match)**. | [Blockscout](https://eth-sepolia.blockscout.com/address/0x95Bea4C3757c5143d12dAD30Eb93bEf58B9e88fB?tab=contract) |
+| Sourcify | Contract is available under the Sepolia `full_match` repository path. | [Sourcify](https://repo.sourcify.dev/contracts/full_match/11155111/0x95Bea4C3757c5143d12dAD30Eb93bEf58B9e88fB/) |
+
+The Foundry verification command used for Etherscan and Sourcify was:
 
 ```bash
-forge script script/DeployERC20.s.sol:DeployERC20 \
-    --rpc-url $SEPOLIA_RPC_URL \
-    --broadcast \
-    --verify
+forge verify-contract \
+    --chain-id 11155111 \
+    --verifier etherscan \
+    --etherscan-api-key "$ETHERSCAN_API_KEY" \
+    --watch \
+    0x95Bea4C3757c5143d12dAD30Eb93bEf58B9e88fB \
+    src/Hassan.sol:Hassan
 ```
 
-The exact deployment configuration depends on the selected network and verification provider.
+The command reported that the contract was already verified on Etherscan and Sourcify. Blockscout's contract page displays an exact-match source verification status. Verification allows users to inspect the published source and compare it with the deployed contract bytecode under the verification settings.
 
-## Development Principles
+## MetaMask Integration
 
-The project follows these engineering principles:
+After deployment, the custom HSN token was added to MetaMask on the Ethereum Sepolia network using its contract address.
 
-- **Standard Compliance:** Follow established Ethereum token standards.
-- **Separation of Concerns:** Keep contract logic, tests, and deployment scripts organized.
-- **Readability:** Prefer clear naming, consistent formatting, and maintainable code.
-- **Testability:** Validate behavior through automated tests.
-- **Security Awareness:** Consider failure conditions and state invariants during implementation.
-- **Reproducibility:** Use version-controlled dependencies and documented commands.
-- **Documentation:** Explain the architecture, important design decisions, and usage workflow.
+To inspect the token in a wallet:
+
+1. Switch MetaMask to **Sepolia**.
+2. Open the import-token flow.
+3. Enter the deployed Hassan token contract address:
+   `0x95Bea4C3757c5143d12dAD30Eb93bEf58B9e88fB`
+4. Confirm the detected token details (`HSN`, 18 decimals) and import the token.
+
+The wallet screenshot shows the imported token entry. The displayed balance is `0 HSN`; this is consistent with the contract's zero initial supply unless tokens have subsequently been minted and transferred to that wallet. Importing a token into MetaMask does not itself mint or transfer tokens.
+
+## Security Considerations
+
+This project is an educational and portfolio project deployed to a testnet. It has not been presented as professionally audited or production-ready.
+
+Important trust and security considerations include:
+
+- **Owner privilege:** The owner can mint new tokens without a configured maximum supply. Token holders must trust the owner not to inflate the supply unexpectedly.
+- **Ownership transfer:** Transferring ownership changes who can mint. The destination address should be checked carefully before the transaction is confirmed.
+- **Ownership renunciation:** Renouncing ownership removes the account authorized to mint. This action should be treated as permanent for this contract.
+- **Token approvals:** An approved spender can transfer tokens up to the available allowance. Users should review spender addresses and approval amounts.
+- **Infinite approvals:** An allowance of `type(uint256).max` is not reduced by delegated transfers in the inherited OpenZeppelin implementation. This can expose the approved balance to the spender until the approval is changed or otherwise revoked.
+- **Dependency use:** OpenZeppelin provides established implementations, but using a library does not automatically make a complete application secure.
+- **Testing limitations:** Automated tests improve confidence in expected behavior but do not prove the absence of vulnerabilities.
+- **Network scope:** The deployment is on Sepolia and has no claim to mainnet deployment or production audit status.
+
+## Configuration and Secrets
+
+Supply RPC endpoints and API credentials locally through environment variables or the project's local configuration. Do not commit secrets to Git.
+
+Example `.env` entries:
+
+```dotenv
+SEPOLIA_RPC_URL=YOUR_SEPOLIA_RPC_URL
+ETHERSCAN_API_KEY=YOUR_ETHERSCAN_API_KEY
+CONTRACT_ADDRESS=0x95Bea4C3757c5143d12dAD30Eb93bEf58B9e88fB
+```
+
+Security rules:
+
+- Never commit private keys, keystore passwords, RPC credentials, or API keys.
+- Keep `.env` excluded through `.gitignore`.
+- Use a placeholder-only `.env.example` for configuration documentation.
+- If an API key or credential is exposed in a terminal recording, screenshot, chat, or public repository, revoke or rotate it before using it again.
+- Do not publish generated compiler input or build artifacts unless there is a specific reason to include them.
+
+## Development Workflow
+
+The project follows a practical smart contract development workflow:
+
+1. Study the ERC-20 specification and the role of its interface and events.
+2. Implement the project token by extending OpenZeppelin's ERC-20 and Ownable contracts.
+3. Build and run the contract locally with Foundry.
+4. Write automated tests for standard operations, permissions, events, expected reverts, and edge cases.
+5. Deploy the contract to Sepolia using a Foundry keystore account.
+6. Verify the deployed source on Etherscan, Blockscout, and Sourcify.
+7. Import the deployed token into MetaMask and inspect its wallet representation.
+8. Document the implementation, testing, deployment, and verification process.
 
 ## References
 
@@ -351,10 +491,17 @@ The project follows these engineering principles:
 - [Ethereum Developer Documentation](https://ethereum.org/en/developers/docs/)
 - [Solidity Documentation](https://docs.soliditylang.org/)
 - [OpenZeppelin Contracts Documentation](https://docs.openzeppelin.com/contracts/)
-- [Foundry Documentation](https://book.getfoundry.sh/)
+- [Foundry Book](https://book.getfoundry.sh/)
+- [Etherscan Sepolia](https://sepolia.etherscan.io/)
+- [Blockscout](https://www.blockscout.com/)
+- [Sourcify](https://sourcify.dev/)
+- [MetaMask Documentation](https://support.metamask.io/)
 
 ---
 
-**Author:** [Hassan Ahmed](https://github.com/Hassan5737)
+## Author
 
-**GitHub Repository:** [erc20-token-project](https://github.com/Hassan5737/erc20-token-project)
+**Hassan Ahmed**  
+[GitHub](https://github.com/Hassan5737) · [LinkedIn](https://www.linkedin.com/in/hassan-ahmed-assad/)
+
+**Repository:** [Hassan ERC-20 Token](https://github.com/Hassan5737/erc20-token-project)

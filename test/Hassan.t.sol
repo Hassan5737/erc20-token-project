@@ -17,7 +17,7 @@ contract HassanTest is Test {
         owner = address(this);
         alice = makeAddr("alice");
         bob = makeAddr("bob");
-        token = new Hassan("Hassan", "HSN");
+        token = new Hassan();
     }
 
     //constructor
